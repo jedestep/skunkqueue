@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
 from persistence import QueuePersister
-import thread
+from threading import Thread, current_thread
+from time import sleep
 
 class Worker(object):
 
-    def __init__(self, queue_name, routing_key, persister):
+    def __init__(self, queue_name, route, persister):
         self.queue_name = queue_name
-        self.routing_key = routing_key
+        self.route = route
         self.persister = persister
 
     def begin_execution(self, *args):
-        self.thread_id = thread.get_ident()
+        self.thread = current_thread()
         while(True):
-            job = persister.get_job_from_queue(self.queue_name, self.route)
+            job = self.persister.get_job_from_queue(self.queue_name, self.route)
             if job:
                 self.do_job(job)
             sleep(0.1)
 
     def do_job(self, job):
         #depickle.
-        print "de pickle: {0}".format(job)
+        import pdb; pdb.set_trace()
 
 
 class WorkerPool(object):
@@ -34,4 +35,6 @@ class WorkerPool(object):
 
         for key in routing_keys:
             worker = Worker(queue_name, key, self.persister)
-            thread.start_new_thread(worker.begin_execution, (None, ))
+            thread = Thread(target=worker.begin_execution)
+            thread.start()
+            workers.append(worker)
