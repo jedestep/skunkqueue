@@ -26,12 +26,11 @@ class Job(object):
         self.args = args
         self.kwargs = kwargs
         for route in self.routes:
-            self.queue.handlers[route].add_to_queue(self)
+            self.queue.add_to_queue(self, route)
 
     def json(self):
         return {
             'q': self.queue.name,
-            'routes': self.routes,
             'body': base64.b64encode(json.dumps({
                 'fn': pickle.dumps(self.fn),
                 'ts': self.created,
