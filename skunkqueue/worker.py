@@ -12,11 +12,12 @@ class Worker(object):
         self.queue_name = queue_name
         self.route = route
         self.persister = persister
+        self.stop = False
 
     def begin_execution(self, *args):
         self.thread = current_thread()
         self.register()
-        while(True):
+        while(not self.stop):
             job = self.persister.get_job_from_queue(self.queue_name, self.worker_id, self.route)
             if job:
                 self.do_job(job)
@@ -37,6 +38,10 @@ class Worker(object):
         print 'about to call a function'
         fn(*args, **kwargs)
 
+    def stop_worker(self):
+        self.stop = True
+
+
 class WorkerPool(object):
 
     def __init__(self, queue_name, routing_keys=None):
@@ -46,10 +51,14 @@ class WorkerPool(object):
         """
         self.queue_name = queue_name
         self.persister = QueuePersister()
-        workers = []
+        self.workers = []
 
         for key in routing_keys:
             worker = Worker(queue_name, key, self.persister)
             thread = Thread(target=worker.begin_execution)
             thread.start()
-            workers.append(worker)
+            self.workers.append(worker)
+
+    def shutdown(self, *args, **kwargs):
+        for worker in self.workers:
+            worker.stop_worker()
