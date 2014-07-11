@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 import dill
+import pickle
 import base64
 import json
 import inspect
@@ -31,10 +34,10 @@ class Job(object):
     def json(self):
         return {
             'q': self.queue.name,
-            'body': base64.b64encode(json.dumps({
+            'body': pickle.dumps({
                 'fn': dill.dumps(self.fn),
                 'ts': self.created,
                 'args': self.args,
                 'kwargs': self.kwargs,
-            }))
+            })
         }

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from persistence import QueuePersister
 from job import Job
 
