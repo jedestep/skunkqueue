@@ -36,7 +36,9 @@ class Worker(object):
 
         #call it
         print 'about to call a function'
-        retval = fn(*args, **kwargs)
+        ret = fn(*args, **kwargs)
+        self.persister.save_result(job['_id'], ret)
+        print ret
 
     def stop_worker(self):
         self.stop = True

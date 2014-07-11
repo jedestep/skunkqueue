@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from pymongo import MongoClient
-from bson.objectid import ObjectId
 from datetime import datetime
+from bson.objectid import ObjectId
+
+class Job(object):
+    def __init__(self, queue, fn, routes=None):
+        routes = routes or []
 
 class QueuePersister(object):
 
@@ -14,6 +18,24 @@ class QueuePersister(object):
         self.access_collection = self.skunkdb['access']
         self.jobs_collection = self.skunkdb['jobs']
         self.worker_collection = self.skunkdb['workers']
+        self.result_collection = self.skunkdb['result']
+
+
+    def job_state(self, job_id):
+        ret = self.result_collection.find_one({'job_id': job_id})
+        if ret:
+            return ret['state']
+        else:
+            return 'pending'
+
+    def job_result(self, job_id):
+        ret = self.result_collection.find_one({'job_id': job_id})
+        if ret:
+            return ret['value']
+
+    def save_result(self, job_id, value):
+        self.result_collection.insert(
+            {'job_id': job_id, 'value': value, 'state': 'completed'})
 
     def add_job_to_queue(self, job, route):
         queue_name = job.queue.name
@@ -25,11 +47,11 @@ class QueuePersister(object):
         if job.queue.queue_type == 'broadcast':
             for worker in self.worker_collection.find():
                 job_flat['q'] = worker['worker_id']
-                # TODO i love hacks
                 job_flat['_id'] = ObjectId()
                 self.jobs_collection.insert(job_flat)
         else:
             self.jobs_collection.insert(job_flat)
+
 
     def get_job_from_queue(self, queue_name, worker_id, route):
         try:
