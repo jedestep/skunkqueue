@@ -27,6 +27,9 @@ class Worker(object):
         self.worker_id = id(self)
         self.persister.worker_collection.insert({'worker_id': self.worker_id})
 
+    def unregister(self):
+        self.persister.worker_collection.remove({'worker_id': self.worker_id})
+
     def do_job(self, job):
         #depickle.
         body = pickle.loads(job['body'])
@@ -41,6 +44,7 @@ class Worker(object):
         print ret
 
     def stop_worker(self):
+        self.unregister()
         self.stop = True
 
 
