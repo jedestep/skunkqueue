@@ -49,7 +49,6 @@ class QueuePersister(object):
             for worker in self.worker_collection.find():
                 job_flat['q'] = worker['worker_id']
                 job_flat['_id'] = ObjectId()
-                print job_flat['job_id']
                 self.jobs_collection.insert(job_flat)
         else:
             self.jobs_collection.insert(job_flat)

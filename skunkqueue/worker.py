@@ -38,7 +38,6 @@ class Worker(object):
         kwargs = body['kwargs']
 
         #call it
-        print 'about to call a function'
         ret = fn(*args, **kwargs)
         self.persister.save_result(job['job_id'], ret)
         print ret
