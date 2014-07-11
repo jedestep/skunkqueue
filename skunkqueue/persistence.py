@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from datetime import datetime
 
 class QueuePersister(object):
@@ -12,6 +13,7 @@ class QueuePersister(object):
         self.skunkdb = MongoClient(conn_url)[dbname]
         self.access_collection = self.skunkdb['access']
         self.jobs_collection = self.skunkdb['jobs']
+        self.worker_collection = self.skunkdb['workers']
 
     def add_job_to_queue(self, job, route):
         queue_name = job.queue.name
@@ -20,17 +22,25 @@ class QueuePersister(object):
         job_flat = job.json()
         job_flat['now'] = datetime.utcnow()
         job_flat['route'] = route
-        self.jobs_collection.insert(job_flat)
+        if job.queue.queue_type == 'broadcast':
+            for worker in self.worker_collection.find():
+                job_flat['q'] = worker['worker_id']
+                # TODO i love hacks
+                job_flat['_id'] = ObjectId()
+                self.jobs_collection.insert(job_flat)
+        else:
+            self.jobs_collection.insert(job_flat)
 
-    def get_job_from_queue(self, queue_name, route):
+    def get_job_from_queue(self, queue_name, worker_id, route):
         try:
             res = self.access_collection.find_and_modify(
                 {'q': queue_name, 'locked': False},
                 update={'$set': {'locked': True}})
             if res:
                 job = self.jobs_collection.find_and_modify(
-                    {'q': queue_name, 'route': route},
-                    remove=True, sort=[('now', -1)])
+                        {'$or': [{'q': queue_name},{'q': worker_id}],
+                        'route': route},
+                        remove=True, sort=[('now', -1)])
 
                 return job
         finally:
