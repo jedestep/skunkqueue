@@ -1,7 +1,7 @@
 from skunkqueue.worker import WorkerPool
 from time import sleep
 
-pool = WorkerPool('demo', ['foo','foo','foo'])
+pool = WorkerPool('demo', ['foo'])
 
 try:
     while True:

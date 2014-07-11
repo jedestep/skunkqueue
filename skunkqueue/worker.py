@@ -36,7 +36,7 @@ class Worker(object):
 
         #call it
         print 'about to call a function'
-        fn(*args, **kwargs)
+        retval = fn(*args, **kwargs)
 
     def stop_worker(self):
         self.stop = True
