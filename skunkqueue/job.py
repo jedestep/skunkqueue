@@ -1,8 +1,8 @@
-import pickle
+import dill
 import base64
 import json
 import inspect
-from datetime import datetime
+import time
 
 class Job(object):
     def __init__(self, queue, fn, routes=None):
@@ -10,7 +10,7 @@ class Job(object):
 
         self.routes = routes
         self.fn = fn
-        self.created = datetime.utcnow()
+        self.created = time.time()
         self.queue = queue
         self.args = None
         self.varargs = None
@@ -32,7 +32,7 @@ class Job(object):
         return {
             'q': self.queue.name,
             'body': base64.b64encode(json.dumps({
-                'fn': pickle.dumps(self.fn),
+                'fn': dill.dumps(self.fn),
                 'ts': self.created,
                 'args': self.args,
                 'kwargs': self.kwargs,
