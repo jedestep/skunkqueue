@@ -3,6 +3,9 @@ from persistence import QueuePersister
 from threading import Thread, current_thread
 from time import sleep
 
+import pickle
+import dill
+
 class Worker(object):
 
     def __init__(self, queue_name, route, persister):
@@ -20,8 +23,15 @@ class Worker(object):
 
     def do_job(self, job):
         #depickle.
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
+        body = pickle.loads(job['body'])
+        fn = dill.loads(body['fn'])
+        args = body['args']
+        kwargs = body['kwargs']
 
+        #call it
+        print 'about to call a function'
+        fn(*args, **kwargs)
 
 class WorkerPool(object):
 
