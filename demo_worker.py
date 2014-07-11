@@ -1,11 +1,10 @@
 from skunkqueue.worker import WorkerPool
 from time import sleep
 
-pool = WorkerPool('demo', ['foo','foo','foo'])
+with WorkerPool('demo', ['foo','foo','foo']) as pool:
 
-try:
-    while True:
-        sleep(0.5)
-except KeyboardInterrupt:
-    print "^C is caught, exiting"
-    pool.shutdown()
+    try:
+        while True:
+            sleep(0.5)
+    except KeyboardInterrupt:
+        print "^C is caught, exiting"

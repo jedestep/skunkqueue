@@ -59,6 +59,9 @@ class WorkerPool(object):
             thread.start()
             self.workers.append(worker)
 
-    def shutdown(self, *args, **kwargs):
+    def __enter__(self, *args, **kwargs):
+        pass
+
+    def __exit__(self, *args, **kwargs):
         for worker in self.workers:
             worker.stop_worker()
