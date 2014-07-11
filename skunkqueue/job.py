@@ -6,7 +6,6 @@ import base64
 import json
 import inspect
 import time
-from bson.objectid import ObjectId
 
 from persistence import QueuePersister
 
@@ -35,15 +34,15 @@ class Job(object):
 
     @property
     def state(self):
-        return self.persister.job_state(job._id)
+        return self.persister.job_state(self.job_id)
 
     @property
     def result(self):
-        return self.persister.job_result(job._id)
+        return self.persister.job_result(self.job_id)
 
     def json(self):
         return {
-            'job_id': ObjectId(),
+            'job_id': self.job_id,
             'q': self.queue.name,
             'body': pickle.dumps({
                 'fn': dill.dumps(self.fn),

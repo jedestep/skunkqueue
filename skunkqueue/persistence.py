@@ -39,6 +39,7 @@ class QueuePersister(object):
 
     def add_job_to_queue(self, job, route):
         queue_name = job.queue.name
+        job.job_id = ObjectId()
         self.access_collection.find_and_modify(
             {'q': queue_name}, {'q': queue_name, 'locked': False}, upsert=True)
         job_flat = job.json()
@@ -48,6 +49,7 @@ class QueuePersister(object):
             for worker in self.worker_collection.find():
                 job_flat['q'] = worker['worker_id']
                 job_flat['_id'] = ObjectId()
+                print job_flat['job_id']
                 self.jobs_collection.insert(job_flat)
         else:
             self.jobs_collection.insert(job_flat)
