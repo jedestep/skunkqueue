@@ -1,6 +1,9 @@
 from setuptools import setup
 
-requires = []
+requires = [
+    "pymongo",
+    "dill"
+]
 
 setup(
     name="skunkqueue",
