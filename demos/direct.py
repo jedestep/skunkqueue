@@ -1,5 +1,6 @@
-from skunkqueue import skunkqueue
 from time import sleep
+
+import skunkqueue
 
 queue = skunkqueue.SkunkQueue('demo')
 
