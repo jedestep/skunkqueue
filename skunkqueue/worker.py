@@ -3,6 +3,9 @@ from persistence import QueuePersister
 from threading import Thread, current_thread
 from time import sleep
 
+import signal
+import sys
+
 import pickle
 import dill
 
@@ -65,8 +68,24 @@ class WorkerPool(object):
             self.workers.append(worker)
 
     def __enter__(self, *args, **kwargs):
-        pass
+        def handler(signum, frame):
+            print 'Received shutdown request'
+            self.shutdown()
+            sys.exit(0)
+        signal.signal(signal.SIGINT, handler)
+        signal.signal(signal.SIGHUP, handler)
+        signal.signal(signal.SIGTERM, handler)
+        signal.signal(signal.SIGALRM, handler)
+        signal.signal(signal.SIGQUIT, handler)
+        return self
 
     def __exit__(self, *args, **kwargs):
+        self.shutdown()
+
+    def shutdown(self):
         for worker in self.workers:
             worker.stop_worker()
+
+    def listen(self):
+        while True:
+            sleep(0.5)
