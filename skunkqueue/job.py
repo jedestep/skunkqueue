@@ -7,7 +7,7 @@ import json
 import inspect
 import time
 
-from persistence import QueuePersister
+from persistence import get_backend
 
 class Job(object):
     def __init__(self, queue, fn, routes=None):
@@ -21,7 +21,9 @@ class Job(object):
         self.varargs = None
         self.kwargs = None
 
-        self.persister = QueuePersister()
+        self.persister = get_backend(queue.backend)(
+                conn_url=queue.conn_url,
+                dbname=queue.dbname)
 
     def __call__(self, *args, **kwargs):
         self.fn(*args, **kwargs)

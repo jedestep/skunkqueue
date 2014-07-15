@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from persistence import QueuePersister
+from persistence import get_backend
 from threading import Thread, current_thread
 from time import sleep
 
@@ -52,13 +52,15 @@ class Worker(object):
 
 class WorkerPool(object):
 
-    def __init__(self, queue_name, routing_keys=None):
+    def __init__(self, queue_name, routing_keys=None,
+            backend='mongodb', conn_url='localhost:27017',
+            dbname='skunkqueue'):
         """
             routing_keys are a required parameter to specify an n-length list
             of routing keys, which will each be assigned to one worker
         """
         self.queue_name = queue_name
-        self.persister = QueuePersister()
+        self.persister = get_backend(backend)(conn_url=conn_url, dbname=dbname)
         self.workers = []
 
         for key in routing_keys:

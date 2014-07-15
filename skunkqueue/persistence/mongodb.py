@@ -4,11 +4,7 @@ from pymongo import MongoClient
 from datetime import datetime
 from bson.objectid import ObjectId
 
-class Job(object):
-    def __init__(self, queue, fn, routes=None):
-        routes = routes or []
-
-class QueuePersister(object):
+class MongoDBPersister(object):
 
     def __init__(self,
                  conn_url='localhost:27017',
@@ -38,6 +34,7 @@ class QueuePersister(object):
             {'job_id': job_id, 'value': value, 'state': 'completed'})
 
     def add_job_to_queue(self, job, route):
+        print 'adding job to queue at route', route
         queue_name = job.queue.name
         job.job_id = ObjectId()
         self.access_collection.find_and_modify(
