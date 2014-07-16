@@ -35,7 +35,7 @@ class RedisPersister(object):
 
     def add_job_to_queue(self, job, route):
         queue_name = job.queue.name
-        job.job_id = 'asdf' # TODO get a job id
+        job.job_id = str(id(job))
 
         job_flat = job.json()
         job_flat['now'] = datetime.utcnow()
