@@ -5,7 +5,6 @@ from datetime import datetime
 from bson.objectid import ObjectId
 
 class MongoDBPersister(object):
-
     def __init__(self,
                  conn_url='localhost:27017',
                  dbname='skunkqueue'):
@@ -29,12 +28,11 @@ class MongoDBPersister(object):
         if ret:
             return ret['value']
 
-    def save_result(self, job_id, value):
+    def save_result(self, job_id, value, state):
         self.result_collection.insert(
-            {'job_id': job_id, 'value': value, 'state': 'completed'})
+            {'job_id': job_id, 'value': value, 'state': state})
 
     def add_job_to_queue(self, job, route):
-        print 'adding job to queue at route', route
         queue_name = job.queue.name
         job.job_id = ObjectId()
         self.access_collection.find_and_modify(
@@ -50,6 +48,11 @@ class MongoDBPersister(object):
         else:
             self.jobs_collection.insert(job_flat)
 
+    def add_worker(self, worker_id):
+        self.worker_collection.insert({'worker_id', worker_id})
+
+    def delete_worker(self, worker_id):
+        self.worker_collection.remove({'worker_id', worker_id})
 
     def get_job_from_queue(self, queue_name, worker_id, route):
         try:
