@@ -7,7 +7,7 @@ Task scheduling for humans (who use Python).
 ### Installing
 ```sudo python setup.py install```
 
-You will need to install one of the following: (MongoDB)[http://mongodb.org], (Redis)[http://redis.io], or (FoundationDB)[http://foundationdb.com].
+You will need to install one of the following: [MongoDB](http://mongodb.org), [Redis](http://redis.io), or [FoundationDB](http://foundationdb.com).
 
 ### Using SkunkQueue
 
