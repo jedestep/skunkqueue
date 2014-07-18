@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
-
-from redis import Redis
 from datetime import datetime
 
 import dill
+_redis = __import__('redis')
+
+default_cfg = {
+    'backend': 'redis',
+    'conn_url': 'localhost:6379',
+    'dbname': 0
+}
 
 class RedisPersister(object):
     def __init__(self,
             conn_url='localhost:6379',
             dbname=0):
         host,port = conn_url.split(':')
-        self.skunkdb = Redis(host=host, port=int(port), db=dbname)
+        self.skunkdb = _redis.Redis(host=host, port=int(port), db=dbname)
 
     def add_worker(self, worker_id):
         self.skunkdb.hset('workers', worker_id, 1)

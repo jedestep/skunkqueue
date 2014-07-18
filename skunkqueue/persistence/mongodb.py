@@ -4,6 +4,12 @@ from pymongo import MongoClient
 from datetime import datetime
 from bson.objectid import ObjectId
 
+default_cfg = {
+    'backend': 'mongodb',
+    'conn_url': 'localhost:27017',
+    'dbname': 'skunkqueue'
+}
+
 class MongoDBPersister(object):
     def __init__(self,
                  conn_url='localhost:27017',

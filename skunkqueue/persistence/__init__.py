@@ -1,6 +1,6 @@
 from mongodb import MongoDBPersister
 from foundation import FoundationPersister
-from _redis import RedisPersister
+from redis import RedisPersister
 
 def get_backend(name):
     backends = {

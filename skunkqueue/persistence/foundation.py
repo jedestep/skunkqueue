@@ -7,6 +7,12 @@ import fdb
 import dill
 import json
 
+default_cfg = {
+    'backend': 'fdb',
+    'conn_url': '/usr/local/etc/foundationdb/fdb.cluster',
+    'dbname': 'skunkqueue'
+}
+
 class FoundationPersister(object):
     def __init__(self,
                  conn_url='/usr/local/etc/foundationdb/fdb.cluster',
