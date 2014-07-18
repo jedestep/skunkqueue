@@ -7,7 +7,7 @@ requires = [
 
 setup(
     name="skunkqueue",
-    version="0.0.1",
+    version="0.3.0",
     packages=["skunkqueue"],
-    description="Asynchronous task runner with MongoDB backend",
+    description="Asynchronous, persistent task runner",
 )

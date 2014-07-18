@@ -107,7 +107,7 @@ class WorkerPool(object):
 
     def die(self):
         for worker in self.workers:
-            os.kill(worker.pid)
+            os.kill(worker.pid, signal.SIGKILL)
 
     def listen(self):
         while True:

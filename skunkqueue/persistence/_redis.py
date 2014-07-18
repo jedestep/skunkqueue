@@ -3,7 +3,6 @@
 from redis import Redis
 from datetime import datetime
 
-import pickle
 import dill
 
 class RedisPersister(object):
@@ -12,10 +11,6 @@ class RedisPersister(object):
             dbname=0):
         host,port = conn_url.split(':')
         self.skunkdb = Redis(host=host, port=int(port), db=dbname)
-
-    def add_job_to_queue(self, job, route):
-        queue_name = job.queue.name
-        job_flat = job.json()
 
     def add_worker(self, worker_id):
         self.skunkdb.hset('workers', worker_id, 1)
@@ -42,7 +37,7 @@ class RedisPersister(object):
         if job.queue.queue_type == 'broadcast':
             for worker in self.skunkdb.hkeys('workers'):
                 queue = worker['worker_id']
-                self.skunkdb.rpush('__WORKERQUEUE-'+queue, pickle.dumps(job_flat))
+                self.skunkdb.rpush('__WORKERQUEUE-'+queue, dill.dumps(job_flat))
         else:
             queue = '-'.join([queue_name, route])
             self.skunkdb.rpush(queue, dill.dumps(job_flat))
