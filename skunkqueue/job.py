@@ -34,6 +34,12 @@ class Job(object):
         for route in self.routes:
             self.queue.add_to_queue(self, route)
 
+    def fire_at(self, ts, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+        for route in self.routes:
+            self.queue.add_to_queue(self, route, ts)
+
     @property
     def state(self):
         return self.persister.job_state(self.job_id)

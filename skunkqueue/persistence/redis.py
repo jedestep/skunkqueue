@@ -33,7 +33,9 @@ class RedisPersister(object):
         self.skunkdb.set('result-'+job_id, value)
         self.skunkdb.set('state-'+job_id, state)
 
-    def add_job_to_queue(self, job, route):
+    def add_job_to_queue(self, job, route, ts=None):
+        if ts:
+            raise NotImplementedError("fire_at is currently unsupported by redis")
         queue_name = job.queue.name
         job.job_id = str(id(job))
 

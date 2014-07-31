@@ -53,7 +53,9 @@ class FoundationPersister(object):
 
     # This is not transactional because it uses the
     # underlying queue layer which is actually transactional
-    def add_job_to_queue(self, job, route):
+    def add_job_to_queue(self, job, route, ts=None):
+        if ts:
+            raise NotImplementedError("fire_at is currently not supported by foundation")
         queue_name = job.queue.name
         job.job_id = str(id(job))
 

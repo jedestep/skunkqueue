@@ -16,8 +16,8 @@ class SkunkQueue(object):
         self.persister = get_backend(backend)(conn_url=conn_url,
                 dbname=dbname)
 
-    def add_to_queue(self, job, route):
-        self.persister.add_job_to_queue(job, route)
+    def add_to_queue(self, job, route, ts=None):
+        self.persister.add_job_to_queue(job, route, ts)
 
     def event(self, routes=[]):
         def decorator(fn):

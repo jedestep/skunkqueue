@@ -38,13 +38,18 @@ class MongoDBPersister(object):
         self.result_collection.insert(
             {'job_id': job_id, 'value': value, 'state': state})
 
-    def add_job_to_queue(self, job, route):
+    def add_job_to_queue(self, job, route, ts=None):
         queue_name = job.queue.name
         job.job_id = ObjectId()
         self.access_collection.find_and_modify(
             {'q': queue_name}, {'q': queue_name, 'locked': False}, upsert=True)
         job_flat = job.json()
-        job_flat['now'] = datetime.utcnow()
+        # ts should be a datetime.timedelta object
+        if ts:
+            job_flat['now'] = datetime.utcnow() + ts
+            print 'made a new TS, it was this:', job_flat['now']
+        else:
+            job_flat['now'] = datetime.utcnow()
         job_flat['route'] = route
         if job.queue.queue_type == 'broadcast':
             for worker in self.worker_collection.find():
@@ -55,20 +60,21 @@ class MongoDBPersister(object):
             self.jobs_collection.insert(job_flat)
 
     def add_worker(self, worker_id):
-        self.worker_collection.insert({'worker_id', worker_id})
+        self.worker_collection.insert(dict(worker_id=worker_id))
 
     def delete_worker(self, worker_id):
-        self.worker_collection.remove({'worker_id', worker_id})
+        self.worker_collection.remove(dict(worker_id=worker_id))
 
     def get_job_from_queue(self, queue_name, worker_id, route):
         try:
             res = self.access_collection.find_and_modify(
-                {'q': queue_name, 'locked': False},
-                update={'$set': {'locked': True}})
+                    {'q': queue_name, 'locked': False},
+                    update={'$set': {'locked': True}})
             if res:
                 job = self.jobs_collection.find_and_modify(
                         {'$or': [{'q': queue_name},{'q': worker_id}],
-                        'route': route},
+                            'now': {'$lte': datetime.utcnow()},
+                            'route': route},
                         remove=True, sort=[('now', -1)])
 
                 return job
