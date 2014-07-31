@@ -82,7 +82,6 @@ class MongoDBPersister(object):
         return ret
 
     def get_job_from_queue(self, queue_name, worker_id, route):
-        print 'getting job from', queue_name, 'with route', route
         try:
             res = self.access_collection.find_and_modify(
                     {'q': queue_name, 'locked': False},
