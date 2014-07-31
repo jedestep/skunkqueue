@@ -47,7 +47,6 @@ class MongoDBPersister(object):
         # ts should be a datetime.timedelta object
         if ts:
             job_flat['now'] = datetime.utcnow() + ts
-            print 'made a new TS, it was this:', job_flat['now']
         else:
             job_flat['now'] = datetime.utcnow()
         job_flat['route'] = route
@@ -65,7 +64,25 @@ class MongoDBPersister(object):
     def delete_worker(self, worker_id):
         self.worker_collection.remove(dict(worker_id=worker_id))
 
+    def route_is_empty(self, queue_name, route):
+        ret = False
+        try:
+            res = self.access_collection.find_and_modify(
+                    {'q': queue_name, 'locked': False},
+                    update={'$set': {'locked': True}})
+            if res:
+                ret = self.jobs_collection.find({
+                    'q': queue_name,
+                    'route': route,
+                    'now': {'$lte': datetime.utcnow()}
+                    }).count() == 0
+        finally:
+            self.access_collection.update({'q': queue_name},
+                {'$set': {'locked': False}})
+        return ret
+
     def get_job_from_queue(self, queue_name, worker_id, route):
+        print 'getting job from', queue_name, 'with route', route
         try:
             res = self.access_collection.find_and_modify(
                     {'q': queue_name, 'locked': False},

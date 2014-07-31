@@ -9,6 +9,6 @@ requires = [
 setup(
     name="skunkqueue",
     version="0.3.0",
-    packages=["skunkqueue"],
+    packages=["skunkqueue", "skunkqueue.persistence"],
     description="Asynchronous, persistent task runner",
 )

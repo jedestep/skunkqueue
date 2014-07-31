@@ -16,6 +16,10 @@ class SkunkQueue(object):
         self.persister = get_backend(backend)(conn_url=conn_url,
                 dbname=dbname)
 
+    def kill_all_by_route(self, route):
+        while not self.persister.route_is_empty(self.name, route):
+            self.persister.get_job_from_queue(self.name, 0, route)
+
     def add_to_queue(self, job, route, ts=None):
         self.persister.add_job_to_queue(job, route, ts)
 

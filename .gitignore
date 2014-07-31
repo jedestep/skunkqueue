@@ -1,3 +1,6 @@
 old/
+build/
+dist/
+*.egg-info
 *.swp
 *.pyc
