@@ -72,6 +72,14 @@ class FoundationPersister(object):
     def get_job_from_queue(self, queue_name, worker_id, route):
         return self._get_job_from_queue(queue_name, worker_id, route, self.conn)
 
+    def route_is_empty(self, queue_name, route):
+        self._route_is_empty(self.conn, queue_name, route)
+
+    @fdb.transactional
+    def _route_is_empty(self, tr, queue_name, route):
+        queue = queue_name + '-' + route
+        return self._get_queue(queue).empty()
+
     @fdb.transactional
     def _get_job_from_queue(self, queue_name, worker_id, route, tr):
         rqueue_name = queue_name + '-' + route
