@@ -6,6 +6,7 @@ import base64
 import json
 import inspect
 import time
+import os
 
 from persistence import get_backend
 
@@ -15,6 +16,7 @@ class Job(object):
 
         self.routes = routes
         self.fn = fn
+        self.directory = os.getcwd() + '/'
         self.created = time.time()
         self.queue = queue
         self.args = None
@@ -53,6 +55,7 @@ class Job(object):
             'job_id': self.job_id,
             'q': self.queue.name,
             'body': pickle.dumps({
+                'dir': self.directory,
                 'fn': dill.dumps(self.fn),
                 'ts': self.created,
                 'args': self.args,

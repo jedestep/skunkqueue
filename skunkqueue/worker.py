@@ -38,13 +38,17 @@ class Worker(object):
         self.persister.delete_worker(self.worker_id)
 
     def do_job(self, job):
-        #depickle.
+        # depickle.
         body = pickle.loads(job['body'])
+        directory = body['dir']
+        # FIXME a horrible hack where we add ourselves to the pythonpath
+        sys.path.append(directory)
+        self.log.debug('current dir is '+ os.getcwd())
         fn = dill.loads(body['fn'])
         args = body['args']
         kwargs = body['kwargs']
 
-        #call it
+        # call it
         try:
             ret = fn(*args, **kwargs)
             self.persister.save_result(job['job_id'], ret, 'complete')
@@ -52,6 +56,8 @@ class Worker(object):
         except Exception as e:
             self.persister.save_result(job['job_id'], None, 'error')
             self.log.error(str(e))
+        finally:
+            a = sys.path.pop()
 
     def stop_worker(self):
         self.unregister()
