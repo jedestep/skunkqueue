@@ -20,6 +20,7 @@ class Worker(object):
         self.pid = os.getpid()
         self.worker_id = '-'.join(['worker', str(wnum), queue_name, route, str(self.pid)])
         self.log = Logger(self.worker_id,logfile=logfile)
+        self.log.info("starting")
 
     def begin_execution(self, *args):
         self.thread = current_thread()
