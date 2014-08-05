@@ -12,7 +12,8 @@ import pickle
 import dill
 
 class Worker(object):
-    def __init__(self, queue_name, route, persister, wnum, logfile=sys.stdout):
+    def __init__(self, queue_name, route, persister, wnum,
+            logfile=sys.stdout, pidfile=None):
         self.queue_name = queue_name
         self.route = route
         self.persister = persister
@@ -21,6 +22,12 @@ class Worker(object):
         self.worker_id = '-'.join(['worker', str(wnum), queue_name, route, str(self.pid)])
         self.log = Logger(self.worker_id,logfile=logfile)
         self.log.info("starting")
+
+        if pidfile:
+            self.log.info("writing to pidfile %s" % pidfile)
+            with open(pidfile) as f:
+                f.write(str(self.pid))
+                f.close()
 
     def begin_execution(self, *args):
         self.thread = current_thread()
@@ -67,7 +74,8 @@ class Worker(object):
 class WorkerPool(object):
     def __init__(self, queue_name, routing_keys=None,
             backend='mongodb', conn_url='localhost:27017',
-            dbname='skunkqueue', logfile=sys.stdout):
+            dbname='skunkqueue', logfile=sys.stdout,
+            pidfile=None):
         """
         routing_keys are a required parameter to specify an n-length list
         of routing keys, which will each be assigned to one worker
@@ -83,7 +91,7 @@ class WorkerPool(object):
             if key not in wnums:
                 wnums[key] = 0
             wnums[key] += 1
-            worker = Worker(queue_name, key, self.persister, wnums[key], logfile)
+            worker = Worker(queue_name, key, self.persister, wnums[key], logfile, pidfile)
             thread = Thread(target=worker.begin_execution)
             thread.start()
             self.workers.append(worker)
