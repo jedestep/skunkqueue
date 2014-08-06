@@ -82,7 +82,7 @@ class RedisPersister(object):
             'host': host,
             'port': port,
             'state': 'waiting'
-            })
+            }))
 
     def delete_worker(self, worker_id):
         self.skunkdb.hdel('workers', worker_id)
