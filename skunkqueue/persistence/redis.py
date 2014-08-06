@@ -17,6 +17,8 @@ class RedisPersister(object):
         host,port = conn_url.split(':')
         self.skunkdb = _redis.Redis(host=host, port=int(port), db=dbname)
 
+    ### Basic information ###
+
     def get_location(self):
         return self.conn_url + '/' + self.dbname
 
@@ -26,11 +28,15 @@ class RedisPersister(object):
     def get_version(self):
         return self.skunkdb.info()['redis_version']
 
-    def add_worker(self, worker_id):
-        self.skunkdb.hset('workers', worker_id, 1)
+    ### Queue manipulation ###
+    def get_all_queues(self):
+        pass # TODO
 
-    def delete_worker(self, worker_id):
-        self.skunkdb.hdel('workers', worker_id)
+    def route_is_empty(self, queue_name, route):
+        queue = '-'.join([queue_name, route])
+        return self.skunkdb.llen(queue) > 0
+
+    ### Result access ###
 
     def job_state(self, job_id):
         return self.skunkdb.get('state-'+job_id)
@@ -42,9 +48,7 @@ class RedisPersister(object):
         self.skunkdb.set('result-'+job_id, value)
         self.skunkdb.set('state-'+job_id, state)
 
-    def route_is_empty(self, queue_name, route):
-        queue = '-'.join([queue_name, route])
-        return self.skunkdb.llen(queue) > 0
+    ### Job manipulation ###
 
     def add_job_to_queue(self, job, route, ts=None):
         if ts:
@@ -67,3 +71,38 @@ class RedisPersister(object):
         queue = '-'.join([queue_name, route])
         val = self.skunkdb.blpop('-'.join([queue_name, route]))
         return dill.loads(val[1])
+
+    def get_jobs_by_queue(self, queue):
+        return [self.skunkdb.get(k) for k in self.skunkdb.keys(queue+'-*')]
+
+    # Worker manipulation
+
+    def add_worker(self, worker_id, host, port):
+        self.skunkdb.hset('workers', worker_id, json.dumps({
+            'host': host,
+            'port': port,
+            'state': 'waiting'
+            })
+
+    def delete_worker(self, worker_id):
+        self.skunkdb.hdel('workers', worker_id)
+
+    def add_monitor(self, host):
+        pass # TODO
+
+    def delete_monitor(self, host):
+        pass # TODO
+
+    def set_working(self, worker_id):
+        v = json.loads(self.skunkdb.hget('workers', worker_id))
+        v['state'] = 'working'
+        v['start'] = str(datetime.utcnow())
+        self.skunkdb.hset('workers', worker_id, json.dumps(v))
+
+    def unset_working(self, worker_id):
+        v = json.loads(self.skunkdb.hget('workers', worker_id))
+        v['state'] = 'waiting'
+        self.skunkdb.hset('workers', worker_id, json.dumps(v))
+
+    def get_all_workers(self):
+        return map(json.loads, self.skunkdb.hvals('workers'))
