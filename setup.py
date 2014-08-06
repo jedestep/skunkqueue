@@ -7,10 +7,18 @@ requires = [
     "dill"
 ]
 
+packages = [
+    'skunkqueue',
+    'skunkqueue.persistence',
+    'skunkqueue.util',
+    'skunkqueue.cli',
+    'skunkqueue.web'
+]
+
 setup(
     name="skunkqueue",
     version="0.5.2",
-    packages=["skunkqueue", "skunkqueue.persistence", "skunkqueue.util", "skunkqueue.cli"],
+    packages=packages,
     scripts=["scripts/skunq"],
-    description="Asynchronous, persistent task runner",
+    description="Asynchronous, persistent task runner"
 )

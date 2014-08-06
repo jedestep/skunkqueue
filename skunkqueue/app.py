@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import skunkqueue.cli.work as work
+import skunkqueue.cli.web as web
 import sys
 
 if __name__ == '__main__':

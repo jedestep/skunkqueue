@@ -17,6 +17,15 @@ class RedisPersister(object):
         host,port = conn_url.split(':')
         self.skunkdb = _redis.Redis(host=host, port=int(port), db=dbname)
 
+    def get_location(self):
+        return self.conn_url + '/' + self.dbname
+
+    def get_backend_type(self):
+        return 'redis'
+
+    def get_version(self):
+        return self.skunkdb.info()['redis_version']
+
     def add_worker(self, worker_id):
         self.skunkdb.hset('workers', worker_id, 1)
 

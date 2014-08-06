@@ -16,6 +16,7 @@ class Job(object):
 
         self.routes = routes
         self.fn = fn
+        self.mod = inspect.getmodulename(inspect.getmodule(fn).__file__)
         self.directory = os.getcwd() + '/'
         self.created = time.time()
         self.queue = queue
@@ -56,7 +57,9 @@ class Job(object):
             'q': self.queue.name,
             'body': pickle.dumps({
                 'dir': self.directory,
-                'fn': dill.dumps(self.fn),
+                'mod': self.mod,
+                #'fn': dill.dumps(self.fn),
+                'fn': self.fn.__name__,
                 'ts': self.created,
                 'args': self.args,
                 'kwargs': self.kwargs,
