@@ -59,5 +59,5 @@ def run(backend_name, conn_url, dbname):
 
 if __name__ == '__main__':
     app.debug = True
-    #run('mongodb', 'localhost:27017', 'skunkqueue')
-    run('redis', 'localhost:6379', 0)
+    run('mongodb', 'localhost:27017', 'skunkqueue')
+    #run('redis', 'localhost:6379', 0)

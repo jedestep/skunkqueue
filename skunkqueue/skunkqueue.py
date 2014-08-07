@@ -24,7 +24,8 @@ class SkunkQueue(object):
 
     ### Death ###
 
-    """Delete all jobs in this queue by route"""
+    """Delete all jobs in this queue by route
+       TODO this is not atomic and it should be"""
     def kill_all_by_route(self, route):
         while not self.persister.route_is_empty(self.name, route):
             self.persister.get_job_from_queue(self.name, 0, route)

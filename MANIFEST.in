@@ -1,0 +1,2 @@
+recursive-include skunkqueue/web/static *
+recursive-include skunkqueue/web/templates *
