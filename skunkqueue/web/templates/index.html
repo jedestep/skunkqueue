@@ -8,7 +8,7 @@
 </ul>
 <br>
 <h3>Registered workers</h3>
-<table class="table table-condensed table-hover">
+<table class="table table-condensed table-hover" id="workers">
     <tr>
         <th>Worker ID</th>
         <th>State</th>
@@ -50,4 +50,45 @@
     </tr>
     {% endfor %}
 </table>
+<!--
+<script type="text/javascript">
+    var eventSource = new EventSource('/subscribe/worker');
+
+    eventSource.onmessage = function(e) {
+        var state;
+        if (e.data['state'] === "working") {
+            state = "working since " + e.data['start'];
+        }
+        else { state = e.data['state']; }
+        tab = $("#workers").append(
+   '<tr>\n' + 
+   '   <td>'+e.data['worker_id']+'</td>\n' +
+   '   <td>\n' +
+       state +
+   '   </td>\n' +
+   '   <td>e.host</td>\n' +
+   '   <td>e.port</td>\n' +
+   '   <td>\n' +
+   '       <form class="form-inline" action="/" method="POST">\n' +
+   '            <input type="hidden" value="'+e.data['host']+'" name="host">\n' +
+   '            <input type="hidden" value="'+e.data['port']+'" name="port">\n' +
+   '            <input type="hidden" value="'+e.data['worker_id']+'" name="wid">\n' +
+   '            <input type="hidden" value="terminate" name="severity">\n' +
+   '            <button type="submit" class="btn btn-warning">Terminate</button>\n' +
+   '        </form>\n' +
+   '    </td>\n' +
+   '    <td>\n' +
+   '        <form class="form-inline" action="/" method="POST">\n' +
+   '            <input type="hidden" value="'+e.data['host']+'" name="host">\n' +
+   '            <input type="hidden" value="'+e.data['port']+'" name="port">\n' +
+   '            <input type="hidden" value="'+e.data['worker_id']+'" name="wid">\n' +
+   '            <input type="hidden" value="kill" name="severity">\n' +
+   '            <button type="submit" class="btn btn-danger">Kill</button>\n' +
+   '        </form>\n' +
+   '    </td>\n' +
+   '</tr>'
+    );
+    };
+</script>
+-->        
 {% endblock %}

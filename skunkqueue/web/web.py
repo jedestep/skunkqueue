@@ -1,7 +1,7 @@
 from skunkqueue.persistence import get_backend
 from skunkqueue import SkunkQueue
-from flask import Flask, request, url_for, render_template, redirect
 from datetime import datetime, timedelta
+from flask import Flask, request, url_for, render_template, redirect
 
 import sys
 import socket
