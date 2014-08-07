@@ -33,10 +33,16 @@ class Worker(object):
 
     def begin_execution(self, *args):
         while not self.stop:
-            job = self.persister.get_job_from_queue(self.queue_name, self.worker_id, self.route)
-            if job:
-                self.do_job(job)
-            sleep(0.1)
+            try:
+                job = self.persister.get_job_from_queue(self.queue_name, self.worker_id, self.route)
+                if job:
+                    self.do_job(job)
+                sleep(0.1)
+            except TriggeredInterrupt:
+                # we were cut off by an interrupt trigger
+                self.log.warn("received interrupt request; stopping current job")
+                self.log.warn("no result will be committed and this job will not be restarted")
+                self.stop_worker()
 
     def register(self):
         self.persister.add_worker(self.worker_id, self.host, self.port)
@@ -66,11 +72,6 @@ class Worker(object):
             ret = fn(*args, **kwargs)
             self.persister.save_result(job['job_id'], ret, 'complete')
             self.log.info(ret)
-        except TriggeredInterrupt:
-            # we were cut off by an interrupt trigger
-            self.log.warn("received interrupt request; stopping current job")
-            self.log.warn("no result will be committed and this job will not be restarted")
-            self.stop_worker()
         except Exception as e:
             self.persister.save_result(job['job_id'], None, 'error')
             self.log.error(str(e))
@@ -185,7 +186,7 @@ class WorkerPool(object):
         if kill:
             try:
                 self.workers[kill][1].raise_exc(TriggeredInterrupt)
-                del self.workers[terminate]
+                del self.workers[kill]
             except ValueError: # it was already dead
                 self.log.warn("tried to kill a thread when it was dead already")
 

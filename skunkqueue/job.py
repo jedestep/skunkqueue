@@ -58,7 +58,6 @@ class Job(object):
             'body': pickle.dumps({
                 'dir': self.directory,
                 'mod': self.mod,
-                #'fn': dill.dumps(self.fn),
                 'fn': self.fn.__name__,
                 'ts': self.created,
                 'args': self.args,
