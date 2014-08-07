@@ -3,8 +3,6 @@ import ctypes
 import inspect
 
 def async_raise(tid, exctype):
-    print 'killing tid', tid
-    print 'threading state is', threading._active
     if not inspect.isclass(exctype):
         raise TypeError("Only types can be raised")
     res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(tid),
