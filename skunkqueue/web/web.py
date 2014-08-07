@@ -1,4 +1,5 @@
 from skunkqueue.persistence import get_backend
+from skunkqueue import SkunkQueue
 from flask import Flask, request, url_for, render_template, redirect
 from datetime import datetime, timedelta
 
@@ -27,25 +28,36 @@ def index():
         return redirect('/')
 
     return render_template('index.html',
-            workers=backend.get_all_workers(),
-            queues=backend.get_all_queues())
+            workers=backend.persister.get_all_workers(),
+            queues=backend.persister.get_all_queues())
 
-@app.route('/queue/<queue_name>')
+@app.route('/queue/<queue_name>', methods=['GET', 'POST'])
 def show_queue(queue_name):
+    if request.method == 'POST':
+        jid = request.form['jid']
+        bname = backend.name
+        backend.name = queue_name
+        backend.kill(jid)
+        backend.name = bname
+        return redirect(url_for('show_queue', queue_name=queue_name))
     return render_template('queue.html',
             queue_name=queue_name,
-            jobs=backend.get_jobs_by_queue(queue_name))
+            jobs=backend.persister.get_jobs_by_queue(queue_name))
 
 def run(backend_name, conn_url, dbname):
     app.debug = True
     global backend
-    backend = get_backend(backend_name)()
-    app.jinja_env.globals['btype'] = backend.get_backend_type()
-    app.jinja_env.globals['bloc'] = backend.get_location()
-    app.jinja_env.globals['bvers'] = backend.get_version()
+    backend = SkunkQueue('__web__',
+            backend=backend_name,
+            conn_url=conn_url,
+            dbname=dbname)
+    app.jinja_env.globals['btype'] = backend.persister.get_backend_type()
+    app.jinja_env.globals['bloc'] = backend.persister.get_location()
+    app.jinja_env.globals['bvers'] = backend.persister.get_version()
     app.jinja_env.globals['str'] = str
     app.run()
 
 if __name__ == '__main__':
     app.debug = True
-    run(sys.argv[1], 'localhost:27017', 'skunkqueue')
+    #run('mongodb', 'localhost:27017', 'skunkqueue')
+    run('redis', 'localhost:6379', 0)

@@ -4,6 +4,8 @@ from pymongo import MongoClient
 from datetime import datetime
 from bson.objectid import ObjectId
 
+import time
+
 default_cfg = {
     'backend': 'mongodb',
     'conn_url': 'localhost:27017',
@@ -97,6 +99,7 @@ class MongoDBPersister(object):
         else:
             self.jobs_collection.insert(job_flat)
 
+    """Pop the first job in the queue that is schedule for work."""
     def get_job_from_queue(self, queue_name, worker_id, route):
         try:
             res = self.access_collection.find_and_modify(
@@ -116,6 +119,24 @@ class MongoDBPersister(object):
 
     def get_jobs_by_queue(self, queue):
         return [c for c in self.jobs_collection.find({'q': queue})]
+
+    """Delete a specific job from somewhere in the queue."""
+    def dequeue_job(self, queue_name, job_id):
+        try:
+            res = None
+            # this call should block on queue availability
+            while not res:
+                res = self.access_collection.find_and_modify(
+                        {'q': queue_name, 'locked': False},
+                        update={'$set': {'locked': True}})
+                time.sleep(0.1)
+            self.jobs_collection.remove({
+                'q': queue_name,
+                'job_id': job_id
+                })
+        finally:
+            self.access_collection.update({'q': queue_name},
+                    {'$set': {'locked': False}})
 
     ### Worker manipulation ###
 

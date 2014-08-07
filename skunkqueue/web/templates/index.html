@@ -1,64 +1,53 @@
 {% extends "base.html" %}
-{% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <p><h3>Welcome to Skunq!</h3>  <br>
-           Backend type: {{ btype }}   <br>
-           Backend location: {{ bloc }}<br>
-           Backend version: {{ bvers }}<br>
-        </p>
-    </div>
-    <div class="col-md-8">
-        <h3>Open queues</h3>
-        <ul class="list-group">
-        {% for q in queues %}
-        <a href="{{url_for('show_queue', queue_name=str(q))}}"><li class="list-group-item">{{q}}</li></a>
-        {% endfor %}
-        </ul>
-        <br>
-        <h3>Registered workers</h3>
-        <table class="table table-condensed table-hover">
-            <tr>
-                <th>Worker ID</th>
-                <th>State</th>
-                <th>Host</th>
-                <th>Port</th>
-                <th>Terminate</th>
-                <th>Kill</th>
-            </tr>
-            {% for w in workers %}
-            <tr>
-                <td>{{w['worker_id']}}</td>
-                <td>
-                    {% if w['state'] == 'working' %}
-                        working since {{ w['start'] }}
-                    {% else %}
-                        {{ w['state'] }}
-                    {% endif %}
-                </td>
-                <td>{{w['host']}}</td>
-                <td>{{w['port']}}</td>
-                <td>
-                    <form class="form-inline" action="/" method="POST">
-                        <input type="hidden" value="{{w['host']}}" name="host">
-                        <input type="hidden" value="{{w['port']}}" name="port">
-                        <input type="hidden" value="{{w['worker_id']}}" name="wid">
-                        <input type="hidden" value="terminate" name="severity">
-                        <button type="submit" class="btn btn-warning">Terminate</button>
-                    </form>
-                </td>
-                <td>
-                    <form class="form-inline" action="/" method="POST">
-                        <input type="hidden" value="{{w['host']}}" name="host">
-                        <input type="hidden" value="{{w['port']}}" name="port">
-                        <input type="hidden" value="{{w['worker_id']}}" name="wid">
-                        <input type="hidden" value="kill" name="severity">
-                        <button type="submit" class="btn btn-danger">Kill</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-</div>
+{% block maincontent %}
+<h3>Open queues</h3>
+<ul class="list-group">
+{% for q in queues %}
+<a href="{{url_for('show_queue', queue_name=str(q))}}"><li class="list-group-item">{{q}}</li></a>
+{% endfor %}
+</ul>
+<br>
+<h3>Registered workers</h3>
+<table class="table table-condensed table-hover">
+    <tr>
+        <th>Worker ID</th>
+        <th>State</th>
+        <th>Host</th>
+        <th>Port</th>
+        <th>Terminate</th>
+        <th>Kill</th>
+    </tr>
+    {% for w in workers %}
+    <tr>
+        <td>{{w['worker_id']}}</td>
+        <td>
+            {% if w['state'] == 'working' %}
+                working since {{ w['start'] }}
+            {% else %}
+                {{ w['state'] }}
+            {% endif %}
+        </td>
+        <td>{{w['host']}}</td>
+        <td>{{w['port']}}</td>
+        <td>
+            <form class="form-inline" action="/" method="POST">
+                <input type="hidden" value="{{w['host']}}" name="host">
+                <input type="hidden" value="{{w['port']}}" name="port">
+                <input type="hidden" value="{{w['worker_id']}}" name="wid">
+                <input type="hidden" value="terminate" name="severity">
+                <button type="submit" class="btn btn-warning">Terminate</button>
+            </form>
+        </td>
+        <td>
+            <form class="form-inline" action="/" method="POST">
+                <input type="hidden" value="{{w['host']}}" name="host">
+                <input type="hidden" value="{{w['port']}}" name="port">
+                <input type="hidden" value="{{w['worker_id']}}" name="wid">
+                <input type="hidden" value="kill" name="severity">
+                <button type="submit" class="btn btn-danger">Kill</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}

@@ -5,7 +5,11 @@ import sys
 class Logger(object):
     def __init__(self, name, logfile=sys.stdout, loglevel=logging.INFO):
         self._log = logging.getLogger(name)
-        so = logging.StreamHandler(logfile)
+        so = None
+        if isinstance(logfile, basestring):
+            so = logging.FileHandler(logfile)
+        else:
+            so = logging.StreamHandler(logfile)
         so.setFormatter(
             logging.Formatter('[%(levelname)s] %(asctime)s %(name)s: %(message)s'))
         self._log.addHandler(so)

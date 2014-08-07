@@ -1,31 +1,24 @@
 {% extends "base.html" %}
 {% block title %}{{queue_name}} | {% endblock %}
-{% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <p><h3>Welcome to Skunq!</h3>  <br>
-           Backend type: {{ btype }}   <br>
-           Backend location: {{ bloc }}<br>
-           Backend version: {{ bvers }}<br>
-        </p>
-    </div>
-    <div class="col-md-8">
-        <h2>Jobs in {{queue_name}}</h2>
-        {% if jobs|length > 0 %}
-            <ul class="list-group">
-            {% for j in jobs %}
-                <li class="list-group-item">
-                    <h4 class="list-group-item-heading">Job {{j['job_id']}}</h4>
-                    <p class="list-group-item-text">
-                        Route: {{j['route']}}<br>
-                        Time: {{j['now']}}
-                    </p>
-                </li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <p>This queue is empty!</p>
-        {% endif %}
-    </div>
-</div>
+{% block maincontent %}
+<h2>Jobs in {{queue_name}}</h2>
+{% if jobs|length > 0 %}
+    <ul class="list-group">
+    {% for j in jobs %}
+        <li class="list-group-item">
+            <form class="form pull-right" method="POST" action="#">
+                <input type="hidden" value="{{j['job_id']}}" name="jid">
+                <button type="submit" class="btn btn-warning">Remove job</button>
+            </form>
+            <h4 class="list-group-item-heading">Job {{j['job_id']}}</h4>
+            <p class="list-group-item-text">
+                Route: {{j['route']}}<br>
+                Time: {{j['now']}}
+            </p>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>This queue is empty!</p>
+{% endif %}
 {% endblock %}

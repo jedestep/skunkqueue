@@ -19,7 +19,23 @@
 
         <div class="container page">
             <div class="content">
-                {% block content %}{% endblock %}
+                {% block content %}
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><h3>Welcome to Skunq!</h3>  <br>
+                           Backend type: {{ btype }}   <br>
+                           Backend location: {{ bloc }}<br>
+                           Backend version: {{ bvers }}<br>
+                        </p>
+                        {% block sidebar %}{% endblock %}
+                    </div>
+                    <div class="col-md-8">
+                        {% block maincontent %}
+                        {% endblock %}
+                    </div>
+                </div>
+                {% block belowmain %}{% endblock %}
+                {% endblock %}
             </div>
         </div>
     </body>

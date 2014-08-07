@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-import dill
+import pickle
+import json
 _redis = __import__('redis')
 
 default_cfg = {
@@ -14,6 +15,8 @@ class RedisPersister(object):
     def __init__(self,
             conn_url='localhost:6379',
             dbname=0):
+        self.conn_url = conn_url
+        self.dbname = str(dbname)
         host,port = conn_url.split(':')
         self.skunkdb = _redis.Redis(host=host, port=int(port), db=dbname)
 
@@ -30,11 +33,11 @@ class RedisPersister(object):
 
     ### Queue manipulation ###
     def get_all_queues(self):
-        pass # TODO
+        return [] # TODO
 
     def route_is_empty(self, queue_name, route):
         queue = '-'.join([queue_name, route])
-        return self.skunkdb.llen(queue) > 0
+        return self.skunkdb.llen(queue) == 0
 
     ### Result access ###
 
@@ -54,26 +57,38 @@ class RedisPersister(object):
         if ts:
             raise NotImplementedError("fire_at is currently unsupported by redis")
         queue_name = job.queue.name
-        job.job_id = str(id(job))
+        job.job_id = str(id(job)) # TODO add more randomness to this
 
         job_flat = job.json()
         job_flat['now'] = datetime.utcnow()
         if job.queue.queue_type == 'broadcast':
             for worker in self.skunkdb.hkeys('workers'):
                 queue = worker['worker_id']
-                self.skunkdb.rpush('__WORKERQUEUE-'+queue, dill.dumps(job_flat))
+                self.skunkdb.rpush('__WORKERQUEUE-'+queue, job.job_id)
+                self.skunkdb.set('job-'+job.job_id, pickle.dumps(job_flat))
         else:
             queue = '-'.join([queue_name, route])
-            self.skunkdb.rpush(queue, dill.dumps(job_flat))
+            self.skunkdb.rpush(queue, job.job_id)
+            print 'putting job at id location', job.job_id
+            self.skunkdb.set('job-'+job.job_id, pickle.dumps(job_flat))
 
     def get_job_from_queue(self, queue_name, worker_id, route):
         # TODO for now only listen for direct queues
         queue = '-'.join([queue_name, route])
-        val = self.skunkdb.blpop('-'.join([queue_name, route]))
-        return dill.loads(val[1])
+        jid = self.skunkdb.lpop(queue)
+        if jid:
+            print 'got jid', jid
+            jid = jid.strip()
+            v = self.skunkdb.get(unicode(jid))
+            print 'v was', v
+            if v:
+                return pickle.loads(v)
 
     def get_jobs_by_queue(self, queue):
         return [self.skunkdb.get(k) for k in self.skunkdb.keys(queue+'-*')]
+
+    def dequeue_job(self, job_id):
+        pass
 
     # Worker manipulation
 
