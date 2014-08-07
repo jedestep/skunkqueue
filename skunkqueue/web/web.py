@@ -55,7 +55,7 @@ def run(backend_name, conn_url, dbname):
     app.jinja_env.globals['bloc'] = backend.persister.get_location()
     app.jinja_env.globals['bvers'] = backend.persister.get_version()
     app.jinja_env.globals['str'] = str
-    app.run()
+    app.run('0.0.0.0', 5010)
 
 if __name__ == '__main__':
     app.debug = True

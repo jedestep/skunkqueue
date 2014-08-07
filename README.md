@@ -72,3 +72,5 @@ Each worker started through one call to ```skunq``` is a part of a single ```Wor
 | SIGKILL  | unhandled |
 
 The gentle strategy will wait for the current job to finish, then unregister and close the worker. The rough strategy will force the current job to raise an exception; no output for the job will be logged. The worker will then be unregistered and closed. ```SIGKILL``` is unhandled and will instantly kill the pool and all workers with no cleanup. __Starting workers after a ```SIGKILL``` currently has undefined behavior. You must manually clear the workers from the database to resume correct behavior.__
+
+Individual workers and jobs can be controlled by the web interface as well. You can launch it with ```skunq web```. The web monitor will then be visible at ```http://<url_or_localhost>:5010```.
