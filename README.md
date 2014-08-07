@@ -61,8 +61,9 @@ The ```-q``` argument specifies the name of the queue to listen from. The ```-r`
 #### Managing Workers
 
 Each worker started through one call to ```skunq``` is a part of a single ```WorkerPool```. The pool serves as a parent process and monitor. Killing its PID will kill _all_ workers started by that pool. The ```WorkerPool``` responds to signals with one of two strategies: _gentle_ or _rough_. Responses to different signals are as follows:
+
 | Signal   | Strategy  | 
-|----------|-----------|
+| -------- | --------- |
 | SIGHUP   | gentle    |
 | SIGABRT  | gentle    |
 | SIGQUIT  | gentle    |
