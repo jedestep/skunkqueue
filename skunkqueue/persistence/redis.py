@@ -19,7 +19,7 @@ class RedisPersister(object):
         self.conn_url = conn_url
         self.dbname = str(dbname)
         host,port = conn_url.split(':')
-        self.skunkdb = _redis.Redis(host=host, port=int(port))
+        self.skunkdb = _redis.Redis(host=host, port=int(port), db=int(dbname))
         self.blocking = False # TODO change it
 
     ### Basic information ###
@@ -35,7 +35,7 @@ class RedisPersister(object):
 
     ### Queue manipulation ###
     def get_all_queues(self):
-        return [] # TODO
+        return [x.split('-')[1] for x in self.skunkdb.scan_iter("queue-*")]
 
     def route_is_empty(self, queue_name, route):
         queue = '-'.join(['queue', queue_name, route])
@@ -70,6 +70,7 @@ class RedisPersister(object):
         else:
             queue = '-'.join(['queue', queue_name, route])
             self.skunkdb.rpush(queue, json.dumps(job_flat))
+        self.skunkdb.set('jobqueue-'+job.job_id, queue)
 
     def get_job_from_queue(self, queue_name, worker_id, route):
         # TODO for now only listen for direct queues
@@ -82,14 +83,26 @@ class RedisPersister(object):
                 return json.loads(job)
 
     def get_jobs_by_queue(self, queue):
-        return [self.skunkdb.get(k) for k in self.skunkdb.keys('queue-'+queue+'-*')]
+        # this returns a list of lists
+        jobs = [map(json.loads, self.skunkdb.lrange(k,0,-1))
+                for k in self.skunkdb.scan_iter('queue-'+queue+'-*')]
+        # concatenate
+        return [i for s in jobs for i in s]
 
-    def dequeue_job(self, job_id):
-        pass
+    def dequeue_job(self, queue_name, job_id):
+        routekey = self.skunkdb.get('jobqueue-'+job_id)
+        # copy queue into a temp, removing the matching job
+        for _i in xrange(0,self.skunkdb.llen(routekey)):
+            val = json.loads(self.skunkdb.rpoplpush(routekey, routekey))
+            if 'job_id' in val and val['job_id'] == job_id:
+                # we found the job to kill but it was already pushed onto the left side
+                # pop from the left side to toss it
+                self.skunkdb.lpop(routekey)
 
     # Worker manipulation
 
     def add_worker(self, worker_id, host, port):
+        # TODO may actually be beneficial to use a set here
         self.skunkdb.hset('workers', worker_id, json.dumps({
             'host': host,
             'port': port,
@@ -117,4 +130,5 @@ class RedisPersister(object):
         self.skunkdb.hset('workers', worker_id, json.dumps(v))
 
     def get_all_workers(self):
+        # TODO package worker ids
         return map(json.loads, self.skunkdb.hvals('workers'))
