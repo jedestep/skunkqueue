@@ -14,6 +14,7 @@ import traceback
 import pickle
 import dill
 import json
+import logging
 
 class Worker(object):
     def __init__(self, queue_name, route, persister, wnum, port,
@@ -24,7 +25,7 @@ class Worker(object):
         self.stop = False
         self.pid = os.getpid()
         self.worker_id = '-'.join(['worker', str(wnum), queue_name, route, str(self.pid)])
-        self.log = Logger(self.worker_id,logfile=logfile)
+        self.log = Logger(self.worker_id,logfile=logfile, loglevel=logging.DEBUG)
         self.log.info("starting")
 
         self.host = socket.gethostbyname(socket.gethostname())
@@ -54,12 +55,10 @@ class Worker(object):
         # depickle
         body = pickle.loads(job['body'])
         directory = body['dir']
-        self.log.debug("just appended "+str(directory))
         # FIXME a horrible hack where we add ourselves to the pythonpath
         sys.path.append(directory)
-        self.log.debug("sys path is "+str(sys.path))
         mod = __import__(body['mod'])
-        self.log.debug("just imported "+str(mod))
+        self.log.debug("successfully imported module "+str(mod))
 
         if job['fn_type'] == 'method':
             parent = dill.loads(body['parent'])
