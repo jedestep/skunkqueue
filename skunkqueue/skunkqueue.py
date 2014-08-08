@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from persistence import get_backend
-from job import Job
+from job import Job, JobMixin
 
 class SkunkQueue(object):
     def __init__(self, name,
@@ -16,11 +16,20 @@ class SkunkQueue(object):
         self.persister = get_backend(backend)(conn_url=conn_url,
                 dbname=dbname)
 
+    def __eq__(self, other):
+        return isinstance(other, SkunkQueue) and self.name == other.name
+
     ### Life ###
 
     """Enqueue a job on this queue"""
     def add_to_queue(self, job, route, ts=None):
         self.persister.add_job_to_queue(job, route, ts)
+
+    def __iadd__(self, other):
+        if isinstance(other, JobMixin):
+            other = other.job(self)
+        for route in other.routes:
+            self.add_to_queue(other, route)
 
     ### Death ###
 
@@ -39,8 +48,8 @@ class SkunkQueue(object):
             jid = job_or_jid
         self.persister.dequeue_job(self.name, jid)
 
-    def event(self, routes=[]):
+    def job(self, routes=[]):
         def decorator(fn):
-            job = Job(self, fn, routes=routes)
-            return job
+            j = Job(self, fn, routes=routes)
+            return j
         return decorator

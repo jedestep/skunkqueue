@@ -51,7 +51,7 @@ class Worker(object):
         self.persister.delete_worker(self.worker_id)
 
     def do_job(self, job):
-        # depickle.
+        # depickle
         body = pickle.loads(job['body'])
         directory = body['dir']
         self.log.debug("just appended "+str(directory))
@@ -61,8 +61,11 @@ class Worker(object):
         mod = __import__(body['mod'])
         self.log.debug("just imported "+str(mod))
 
-        #fn = dill.loads(body['fn'])
-        fn = getattr(mod, body['fn'])
+        if job['fn_type'] == 'method':
+            parent = dill.loads(body['parent'])
+            fn = getattr(parent, body['fn'])
+        else:
+            fn = getattr(mod, body['fn'])
         args = body['args']
         kwargs = body['kwargs']
 
