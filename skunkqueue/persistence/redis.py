@@ -131,4 +131,10 @@ class RedisPersister(object):
 
     def get_all_workers(self):
         # TODO package worker ids
-        return map(json.loads, self.skunkdb.hvals('workers'))
+        pairs = self.skunkdb.hscan_iter('workers')
+        ret = []
+        for k, w in pairs:
+            w = json.loads(w)
+            w['worker_id'] = k
+            ret.append(w)
+        return ret
