@@ -78,7 +78,7 @@ class Job(object):
                 dbname=queue.dbname)
 
     def __call__(self, *args, **kwargs):
-        self.fn(*args, **kwargs)
+        return self.fn(*args, **kwargs)
 
     def fire(self, *args, **kwargs):
         self.args = args
