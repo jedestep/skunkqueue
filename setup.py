@@ -4,6 +4,7 @@ requires = [
     "pymongo",
     "redis",
     "fdb",
+    "flask",
     "dill"
 ]
 
@@ -12,7 +13,8 @@ packages = [
     'skunkqueue.persistence',
     'skunkqueue.util',
     'skunkqueue.cli',
-    'skunkqueue.web'
+    'skunkqueue.web',
+    'skunkqueue.scheduler',
 ]
 
 setup(
@@ -20,6 +22,7 @@ setup(
     version="0.5.2",
     packages=packages,
     include_package_data=True,
+    install_requires=requires,
     scripts=["scripts/skunq"],
     description="Asynchronous, persistent task runner"
 )
