@@ -12,8 +12,11 @@ MongoDB is the most well-supported at the moment. Redis is mostly functional and
 
 ### Launching jobs
 
+SkunkQueue has a couple different ways to add jobs to a queue.
+
+Decorator style:
 ```python
- # demo.py; this file launches events
+ # demo.py; this file launches jobs
 
 from skunkqueue import SkunkQueue
 from skunkqueue.persistence.mongodb import default_cfg
@@ -31,7 +34,7 @@ queue = SkunkQueue('demo', **default_cfg)
  # event when it's fired.
  # Note that events have type skunkqueue.job.Job,
  # not function.
-@queue.event(routes=['foo'])
+@queue.job(routes=['foo'])
 def add(first, second):
     # The return value gets saved by the backend.
     return first + second
@@ -46,6 +49,47 @@ sleep(2)
  # Additionally, the state and result fields of add will be updated.
 print 'result', add.result
 print 'state', add.state
+```
+
+Mixin style:
+```python
+ # demo.py
+
+from skunkqueue import SkunkQueue
+from skunkqueue.persistence.redis import default_cfg
+from skunkqueue.job import JobMixin
+from datetime import timedelta
+
+queue = SkunkQueue('demo', **default_cfg)
+
+ # Classes that inherit JobMixin are now jobs.
+ # The work they do is defined in the work method.
+ # It can take any number of arguments.
+ # A note: make sure if you override __init__ to call
+ # the __init__ method from JobMixin as well.
+class SayHello(JobMixin):
+  def work(self):
+    print 'hello!'
+
+class SayHelloToSomeone(JobMixin):
+  def work(self, name):
+    print 'hello', name, '!'
+
+job = SayHello()
+job.routes = ['foo'] # in the future this won't be necessary
+queue += job # add the job to the queue.
+
+job2 = SayHelloToSomeone()
+job2.routes = ['foo']
+queue += job2('Jed') # add arguments like you're calling it.
+                     # this does use the __call__ method so at the moment
+                     # it's recommended you not require your jobs to be callables
+
+ # Jobs can be conjoined.
+ # This creates a new job that performs the other two in sequence.
+job3 = SayHello() & SayHelloToSomeone()('Ian')
+job3.routes = ['foo']
+queue += job3
 ```
 
 ### Executing jobs
@@ -74,3 +118,43 @@ Each worker started through one call to ```skunq``` is a part of a single ```Wor
 The gentle strategy will wait for the current job to finish, then unregister and close the worker. The rough strategy will force the current job to raise an exception; no output for the job will be logged. The worker will then be unregistered and closed. ```SIGKILL``` is unhandled and will instantly kill the pool and all workers with no cleanup. __Starting workers after a ```SIGKILL``` currently has undefined behavior. You must manually clear the workers from the database to resume correct behavior.__
 
 Individual workers and jobs can be controlled by the web interface as well. You can launch it with ```skunq web```. The web monitor will then be visible at ```http://<url_or_localhost>:5010```.
+
+### Scheduling jobs
+
+It's nice to have some jobs automatically reschedule themselves after finishing, for example data gathering, stale data removal, etc. SkunkQueue provides a series of schedulers with a variety of scheduling algorithms. For ```cron```-like usage, a basic ```TimeScheduler``` is available. Adaptive strategies, which try to adjust rescheduling time based on estimates of how long jobs will take, are also available.
+
+```python
+from skunkqueue import SkunkQueue
+from skunkqueue.scheduler import TimeScheduler
+from skunkqueue.job import JobMixin
+from datetime import timedelta
+ # others coming soon are AIMDScheduler, RTOScheduler, SlowStartScheduler
+
+queue = SkunkQueue('demo')
+
+class Foo(JobMixin):
+  def work(self):
+    print 'baz'
+
+class Bar(JobMixin):
+  def work(self):
+    print 'qux'
+
+job = Foo()
+job.routes = ['foo']
+
+job2 = Bar()
+job2.routes = ['foo']
+
+with TimeScheduler(queue, timedelta(hours=3)) as schedule:
+  schedule << job
+  schedule << job2
+ # Up until a flush, all jobs fed into the schedule
+ # are conjoined. At a flush, the scheduler will construct
+ # a compound job and place it on its queue.
+ # Conjoining those jobs ensures they'll always be run
+ # together.
+  schedule.flush()
+  schedule << job
+ # On exit, the scheduler flushes one more time.
+```
